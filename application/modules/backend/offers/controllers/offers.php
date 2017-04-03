@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Class Offers
+ * @property Offer_m $offer_m
+ */
 class Offers extends Back_controller
 {
 
@@ -28,7 +32,7 @@ class Offers extends Back_controller
 
         if ($this->input->post() && $this->validateOfferForm()) {
 
-            $this->offer_m->addOffer($this->input->post());
+            $this->offer_m->addOffersType($this->input->post());
 
             $this->session->set_flashdata('success', $this->lang->line('text_success'));
 
@@ -42,7 +46,7 @@ class Offers extends Back_controller
         $this->template->title($this->lang->line('heading_title'));
 
         if ($this->input->post() && $this->validateOfferForm()) {
-            $this->offer_m->editOffer($this->input->get('offer_id'), $this->input->post());
+            $this->offer_m->editOffersType($this->input->get('offer_id'), $this->input->post());
             $this->session->set_flashdata('success', $this->lang->line('text_success'));
             redirect(base_url('admin/offers?token=' . $this->token));
         }
@@ -55,6 +59,11 @@ class Offers extends Back_controller
 
     }
 
+
+    /**
+     * Adding store from offer page using ajax call
+     *
+     */
     public function store_add()
     {
         if ($this->input->post('data')) {
@@ -67,7 +76,12 @@ class Offers extends Back_controller
         exit;
     }
 
-    protected function getOfferList()
+    public function getOfferList()
+    {
+
+    }
+
+    protected function getOfferTypeList()
     {
         $data['breadcrumbs'] = array(
             array(
@@ -84,7 +98,7 @@ class Offers extends Back_controller
         $data['sync'] = base_url('admin/offers/sync?token=' . $this->token);
         $data['cancel'] = base_url('admin/offers?token=' . $this->token);
         $data['delete'] = base_url();
-        $data['offers'] = $this->offer_m->getOffers();
+        $data['offers'] = $this->offer_m->getOffersType();
 
         $this->load->model('stores/store_m');
         $temp = $this->store_m->getStores();
@@ -132,7 +146,7 @@ class Offers extends Back_controller
         }
 
         $data['token'] = $this->token;
-        $this->template->build('offer_list', $data);
+        $this->template->build('offer_type_list', $data);
     }
 
     protected function getOfferForm()
@@ -176,7 +190,7 @@ class Offers extends Back_controller
 
 
         if ($this->input->get('offer_id') && !$this->input->post()) {
-            $offer_info = $this->offer_m->getOffer($this->input->get('offer_id'));
+            $offer_info = $this->offer_m->getOfferType($this->input->get('offer_id'));
         }
 
         if ($this->input->post('name')) {
@@ -205,7 +219,7 @@ class Offers extends Back_controller
         } elseif (!empty($offer_info['status'])) {
             $data['status'] = $offer_info['status'];
         } else {
-            $data['status'] = true;
+            $data['status'] = TRUE;
         }
         $data['token'] = $this->token;
 
@@ -227,5 +241,43 @@ class Offers extends Back_controller
         }
 
         return !$this->error;
+    }
+
+
+    protected function fetch_and_insert_offers()
+    {
+        $this->load->library('flipkart');
+        $all_offer_url = 'https://affiliate-api.flipkart.net/affiliate/offers/v1/all/json';
+        $dotd_url = 'https://affiliate-api.flipkart.net/affiliate/offers/v1/dotdF/json';
+        $flipkart = new Flipkart($this->fk_affID, $this->fk_token, 'json');
+
+        $offers_type = $this->offer_m->offersType();
+
+        $this->load->model('stores/store_m');
+        $stores = $this->store_m->getStores();
+
+        $all_offer = $flipkart->call_url($all_offer_url);
+
+        if ($all_offer) {
+            $all_offer = json_decode($all_offer, TRUE);
+            foreach ($all_offer['allOfferList'] as $offer) {
+                $this->offer_m->addOffer($offer);
+            }
+
+        }
+
+
+        if ($dotd_url) {
+            $dotd = $flipkart->call_url($dotd_url);
+        }
+
+    }
+
+    protected function create_log()
+    {
+        $content = date('Y-m-d H:i:s');
+        $fp = fopen("/log.txt", "wb");
+        fwrite($fp, $content);
+        fclose($fp);
     }
 }

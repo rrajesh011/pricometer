@@ -5,16 +5,20 @@
  * @property CI_Lang $lang
  * @property Image_m $Image_m
  */
-class Back_controller extends MY_Controller {
+class Back_controller extends MY_Controller
+{
 
     private $permission = array();
     public $token = '';
+    public $fk_token= '32e1814b84484bfe8b447bdfb1127a39';
+    public $fk_affID='salespric2';
+    public $az_token= '';
 
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct();
         $this->token = $this->session->userdata('token');
         $this->lang->load('common');
-
 
     }
 
