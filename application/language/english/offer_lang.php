@@ -15,6 +15,7 @@ $lang['column_name']            = 'Offer Name';
 $lang['column_store']           = 'Store';
 $lang['column_status']          = 'Status';
 $lang['column_action']          = 'Action';
+$lang['column_offer_type']      = 'Offer Type';
 
 // Entry
 $lang['entry_name']             = 'Offer Name';

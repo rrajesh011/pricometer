@@ -22,6 +22,15 @@ class Offer_m extends MY_Model
 
     }
 
+    public function getOffers()
+    {
+        return $this->db->select('offers.*,offers_image.url as image_url,offers_image.resolution_type')->join('offers_image', 'offers_image.offer_id=offers.offer_id')
+            ->get('offers')
+            ->result_array();
+
+
+    }
+
     public function addOffersType($data)
     {
         $set = array(
@@ -39,7 +48,7 @@ class Offer_m extends MY_Model
             'offer_type_id' => 2,   //hard coded will be changed in future
             'store_id'      => 1,   //hard coded will be changed in future
             'start_time'    => $data['startTime'],
-            'end_time'      => $data['endTIme'],
+            'end_time'      => $data['endTime'],
             'title'         => $data['title'],
             'description'   => $data['description'],
             'url'           => $data['url'],
@@ -49,16 +58,15 @@ class Offer_m extends MY_Model
         $this->db->set($set)->insert('offers');
         $offer_id = $this->db->insert_id();
 
-        $data['imageUrls'] = array();
-        $insert = array();
         foreach ($data['imageUrls'] as $imageUrl) {
-            $insert[] = array(
+            $insert = array(
                 'offer_id'        => $offer_id,
                 'url'             => $imageUrl['url'],
                 'resolution_type' => $imageUrl['resolutionType']
             );
+            $this->db->set($insert)->insert('offers_image');
+
         }
-        $this->db->set($insert)->insert('offers_image');
         return $offer_id;
     }
 

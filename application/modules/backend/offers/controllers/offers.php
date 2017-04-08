@@ -14,6 +14,9 @@ class Offers extends Back_controller
 
         parent::__construct();
 
+        if (!$this->isLogged()) {
+            redirect(site_url('admin/auth/login'));
+        }
         $this->load->model('offer_m');
         $this->lang->load('offer');
     }
@@ -78,7 +81,70 @@ class Offers extends Back_controller
 
     public function getOfferList()
     {
+        date_default_timezone_set('Asia/Kolkata');
+        $currentTime = strtotime(date('Y-m-d H:i:s'));
+        $log = APPPATH . 'logs' . DIRECTORY_SEPARATOR . 'log.txt';
 
+        if (file_exists($log))
+            $oldTime = strtotime(file_get_contents($log)) + 86400;
+        else $oldTime = 0;
+        if ($currentTime > $oldTime) {
+            $this->fetch_and_insert_offers();
+        }
+
+        //Breadcrumbs
+        $data['breadcrumbs'][] = array();
+        $data['breadcrumbs'] = array(
+            array(
+                'text' => $this->lang->line('text_home'),
+                'href' => base_url('admin/dashboard?token=' . $this->token)
+            ),
+            array(
+                'text' => $this->lang->line('heading_title'),
+                'href' => base_url('admin/offers?token=' . $this->token)
+            )
+        );
+        $data['heading_title'] = $this->lang->line('heading_title');
+
+        $data['text_list'] = $this->lang->line('text_list');
+        $data['text_no_results'] = $this->lang->line('text_no_results');
+        $data['text_confirm'] = $this->lang->line('text_confirm');
+        $data['column_name'] = $this->lang->line('column_name');
+
+        $data['button_edit'] = $this->lang->line('button_edit');
+        $data['button_delete'] = $this->lang->line('button_delete');
+        $data['button_sync'] = $this->lang->line('button_sync');
+
+        if (isset($this->error['warning'])) {
+            $data['error_warning'] = $this->error['warning'];
+        } else {
+            $data['error_warning'] = '';
+        }
+
+        if ($this->session->userdata('success')) {
+            $data['success'] = $this->session->userdata('success');
+
+            $this->session->unset_userdata('success');
+        } else {
+            $data['success'] = '';
+        }
+
+        if ($this->input->post('selected')) {
+            $data['selected'] = (array)$this->input->post('selected');
+        } else {
+            $data['selected'] = array();
+        }
+
+
+        $data['token'] = $this->token;
+
+
+        $data['add'] = base_url('admin/offers/add?token=' . $this->token);
+        $data['delete'] = base_url('admin/offers/delete?token=' . $this->token);
+        $data['sync'] = base_url('admin/offers/rebuild?token=' . $this->token);
+        $data['offers'] = $this->offer_m->getOffers();
+
+        $this->template->build('offers/offer_list', $data);
     }
 
     protected function getOfferTypeList()
@@ -248,11 +314,13 @@ class Offers extends Back_controller
     {
         $this->load->library('flipkart');
         $all_offer_url = 'https://affiliate-api.flipkart.net/affiliate/offers/v1/all/json';
-        $dotd_url = 'https://affiliate-api.flipkart.net/affiliate/offers/v1/dotdF/json';
+        $dotd_url = 'https://affiliate-api.flipkart.net/affiliate/offers/v1/dotd/json';
         $flipkart = new Flipkart($this->fk_affID, $this->fk_token, 'json');
 
         $offers_type = $this->offer_m->offersType();
 
+        $this->db->truncate('offers');
+        $this->db->truncate('offers_image');
         $this->load->model('stores/store_m');
         $stores = $this->store_m->getStores();
 
@@ -260,23 +328,28 @@ class Offers extends Back_controller
 
         if ($all_offer) {
             $all_offer = json_decode($all_offer, TRUE);
-            foreach ($all_offer['allOfferList'] as $offer) {
+            $totalRows = count($all_offer['allOffersList']);
+            $i = 0;
+            foreach ($all_offer['allOffersList'] as $offer) {
                 $this->offer_m->addOffer($offer);
+                $i++;
             }
-
+            if ($i == $totalRows) {
+                $this->create_log();
+            } else {
+                die('Could not Sync Completely');
+            }
         }
 
-
-        if ($dotd_url) {
+        /*if ($dotd_url) {
             $dotd = $flipkart->call_url($dotd_url);
-        }
-
+        }*/
     }
 
     protected function create_log()
     {
         $content = date('Y-m-d H:i:s');
-        $fp = fopen("/log.txt", "wb");
+        $fp = fopen(APPPATH . 'logs' . DIRECTORY_SEPARATOR . "log.txt", "w+") or die('Can\'t Create log file');
         fwrite($fp, $content);
         fclose($fp);
     }
