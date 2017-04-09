@@ -86,13 +86,17 @@
                         <?php
                         $i = 1;
                         foreach ($offers as $offer) {
+
                             echo '<tr>';
                             echo '<td><input type="checkbox" name="selected[]"  value="' . $offer['offer_id'] . '"></td>';
                             echo '<td>' . $i . '</td>';
-                            echo '<td>' . $offer_type[$offer['offer_type_id']] . '</td>';
+                            echo '<td>' . $offers_type[$offer['offer_type_id']] . '</td>';
+                        echo '<td>' . $offer['description'] . '</td>';
                             echo '<td>' . $stores[$offer['store_id']] . '</td>';
-                            echo '<td>' . $offer['description'] . '</td>';
-                            echo '<td>' . get_button($offer['status']) . '</td>';
+                        
+                            echo '<td>'.  date('d-m-Y H:i:s',$offer['start_time']).'</td>';
+                            echo '<td>'.date('d-m-Y H:i:s',$offer['end_time']).'</td>';
+                            echo '<td>'.$offer['category'].'</td>';
                             echo '<td><a href="' . base_url('admin/offers/edit?offer_id=' . $offer['offer_id'] . '&token=' . $token) . '" class="btn btn-info btn-sm"><i class="fa fa-pencil"></i></a>
                                   <a href="' . base_url('admin/offers/delete?offer_id=' . $offer['offer_id'] . '&token=' . $token) . '" class="btn btn-danger btn-sm" onclick="return confirm(\'Are You Sure\')"><i class="fa fa-trash-o"></i></a>
                               </td>';

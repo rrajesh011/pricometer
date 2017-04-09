@@ -88,7 +88,9 @@ class Offers extends Back_controller
         if (file_exists($log))
             $oldTime = strtotime(file_get_contents($log)) + 86400;
         else $oldTime = 0;
+
         if ($currentTime > $oldTime) {
+
             $this->fetch_and_insert_offers();
         }
 
@@ -143,6 +145,8 @@ class Offers extends Back_controller
         $data['delete'] = base_url('admin/offers/delete?token=' . $this->token);
         $data['sync'] = base_url('admin/offers/rebuild?token=' . $this->token);
         $data['offers'] = $this->offer_m->getOffers();
+        $data['offers_type']=$this->offer_m->get_offer_type_list();
+        $data['stores']=$this->offer_m->get_store_list();
 
         $this->template->build('offers/offer_list', $data);
     }

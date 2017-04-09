@@ -22,13 +22,14 @@ class Offer_m extends MY_Model
 
     }
 
-    public function getOffers()
+    public function getOffers($offset=0,$limit=100)
     {
-        return $this->db->select('offers.*,offers_image.url as image_url,offers_image.resolution_type')->join('offers_image', 'offers_image.offer_id=offers.offer_id')
+
+        return $this->db->select('offers.*,offers_image.url as image_url,offers_image.resolution_type')->join('offers_image', 'offers_image.offer_id=offers.offer_id','LEFT')
+            ->group_by('offer_id')
+            ->limit($offset,$limit)
             ->get('offers')
             ->result_array();
-
-
     }
 
     public function addOffersType($data)
@@ -53,8 +54,10 @@ class Offer_m extends MY_Model
             'description'   => $data['description'],
             'url'           => $data['url'],
             'category'      => $data['category'],
-            'availability'  => $data['availability'] == 'TRUE' ? 1 : 0
+            'availability'  => $data['availability'] == 'LIVE' ? 1 : 0,
+            'updated_on'    => date('Y-m-d H:i:s')
         );
+
         $this->db->set($set)->insert('offers');
         $offer_id = $this->db->insert_id();
 
@@ -85,5 +88,27 @@ class Offer_m extends MY_Model
     {
         return $this->db->get('offers_type')
             ->result_array();
+    }
+
+    public function get_offer_type_list(){
+       $offersType= $this->db->get('offers_type')->result_array();
+
+        $list=array();
+       
+        foreach ($offersType as $value) {
+            $list[$value['offer_type_id']]=$value['name'];
+        }
+       
+        return $list;
+    }
+
+    public function get_store_list(){
+        $stores=$this->db->get('stores')->result_array();
+        $list=[];
+        foreach ($stores as $value) {
+            $list[$value['store_id']]=$value['name'];
+        }
+        
+        return $list;
     }
 }

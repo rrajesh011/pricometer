@@ -35,6 +35,7 @@ class Flipkart
      **/
     public function call_url($url)
     {
+
         return $this->sendRequest($url);
     }
 
@@ -50,12 +51,14 @@ class Flipkart
     {
         //Make sure cURL is available
         if (function_exists('curl_init') && function_exists('curl_setopt')) {
+            
             //The headers are required for authentication
             $headers = array(
                 'Cache-Control: no-cache',
                 'Fk-Affiliate-Id: ' . $this->affiliateId,
                 'Fk-Affiliate-Token: ' . $this->token
             );
+
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $url);
             curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
