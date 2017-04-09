@@ -9,7 +9,7 @@ class Offer_m extends MY_Model
 
     public function getOffersType()
     {
-        return $this->db->get('offers')
+        return $this->db->get('offers_type')
             ->result_array();
     }
 
@@ -17,7 +17,7 @@ class Offer_m extends MY_Model
     {
 
         return $this->db->where('offer_id', $offer_id)
-            ->get('offers')
+            ->get('offers_type')
             ->row_array();
 
     }

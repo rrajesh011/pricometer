@@ -126,7 +126,7 @@ $assign_to_config['template_path'] = 'modules/layouts/';
 $assign_to_config['layout_path'] = 'layouts/backend/';
 
 
-$assign_to_config['base_url'] = 'http://localhost/pricometer/';
+$assign_to_config['base_url'] = 'http://localhost/ci_project/';
 $assign_to_config['index_page'] = '';
 $assign_to_config['url_suffix'] = '';
 #endregion
